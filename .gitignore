@@ -1,0 +1,7 @@
+__pycache__
+.env
+logs/
+plugins/
+config/
+venv
+Task.txt
