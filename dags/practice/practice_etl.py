@@ -13,7 +13,8 @@ DEFAULT_ARGS = {
     'owner': 'KhRG',
     'retiries': 2,
     'retry_delay': 60,
-    'start_date': datetime(2026, 8, 9)
+    'start_date': datetime(2026, 8, 9),
+    'end_date': datetime(2026, 8, 31)
 }
 
 API_URL = os.getenv('API_URL')
@@ -73,8 +74,6 @@ def load_staging_schem(**context):
         cur.close()
 
 
-
-
 def load_dds_schem(**context):
     import psycopg2 as pg
 
@@ -109,7 +108,7 @@ def load_dds_schem(**context):
 
 
 
-def load_to_s3(**context):
+def load_to_s3(start_date, **context):
     from io import BytesIO
     from botocore.client import Config
     import psycopg2 as pg
@@ -128,7 +127,7 @@ def load_to_s3(**context):
             count_submit
         FROM
             dds.dds_data
-        WHERE count_submit > 0
+        WHERE count_submit > 0 AND date >= { start_date }::date;
     '''
 
     with pg.connect(
@@ -176,8 +175,6 @@ def load_to_s3(**context):
         Bucket='csv',
         Key=f"admin_{context['ds']}.csv"
     )
-
-
 
 
 def load_stg_to_s3(**context):
@@ -243,8 +240,9 @@ with DAG(
     tags=['KhRG', '3'],
     schedule='@weekly',
     default_args=DEFAULT_ARGS,
-    max_active_runs=3,
-    max_active_tasks=3
+    max_active_runs=1,
+    max_active_tasks=1,
+    render_template_as_native_obj=True
 ) as dag:
 
     dag_start = EmptyOperator(task_id='dag_start')
@@ -262,7 +260,10 @@ with DAG(
 
     load_db_to_s3 = PythonOperator(
         task_id='load_to_s3',
-        python_callable=load_to_s3
+        python_callable=load_to_s3,
+        op_kwargs={
+            'start_date': '{{ datetime(2026, 8, 10) }}'
+        }
     )
 
     load_stg = PythonOperator(
