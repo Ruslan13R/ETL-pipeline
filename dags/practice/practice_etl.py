@@ -118,7 +118,7 @@ def load_to_s3(start_date, **context):
 
     connection = BaseHook.get_connection('db_conn')
 
-    query_sql = '''
+    query_sql = f'''
         SELECT
             lti_user_id,
             date,
