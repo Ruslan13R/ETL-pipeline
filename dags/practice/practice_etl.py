@@ -107,7 +107,6 @@ def load_dds_schem(**context):
         cursor.close()
 
 
-
 def load_to_s3(start_date, **context):
     from io import BytesIO
     from botocore.client import Config
