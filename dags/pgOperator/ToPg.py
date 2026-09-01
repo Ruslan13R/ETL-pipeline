@@ -1,5 +1,6 @@
 from pgOperator.api_pg_operator import APIToPgOperator
 from airflow.operators.empty import EmptyOperator
+from sensors.sql_sensor import SqlSensor
 from airflow.models.dag import DAG
 from datetime import datetime
 
@@ -33,4 +34,11 @@ with DAG(
         date_end='{{ tomorrow_ds }}'
     )
 
-    dag_start >> topg >> dag_end
+    get_rec_sensor = SqlSensor(
+        task_id='get_record',
+        table_name=['staging.stg_data', 'staging.stg_month_data'],
+        mode='reschedule',
+        poke_interval=60
+    )
+
+    dag_start >> get_rec_sensor >> topg >> dag_end

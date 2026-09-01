@@ -117,7 +117,7 @@ def load_to_s3(start_date, **context):
 
     connection = BaseHook.get_connection('db_conn')
 
-    query_sql = f'''
+    query_sql = f"""
         SELECT
             lti_user_id,
             date,
@@ -126,8 +126,8 @@ def load_to_s3(start_date, **context):
             count_submit
         FROM
             dds.dds_data
-        WHERE count_submit > 0 AND date >= { start_date }::date;
-    '''
+        WHERE count_submit > 0 AND date >= '{ start_date }'::date;
+    """
 
     with pg.connect(
         dbname='etl', sslmode='disable',
@@ -261,7 +261,7 @@ with DAG(
         task_id='load_to_s3',
         python_callable=load_to_s3,
         op_kwargs={
-            'start_date': '{{ datetime(2026, 8, 10) }}'
+            'start_date': f'{ datetime(2026, 8, 10).date() }'
         }
     )
 
